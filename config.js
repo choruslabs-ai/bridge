@@ -1,6 +1,6 @@
 // Configure the Apps Script webapp base URL (deployed web app URL)
 // Example: const API_BASE = 'https://script.google.com/macros/s/AKfycbx.../exec';
-const API_BASE = 'https://script.google.com/macros/s/AKfycbwgnkroYUjsR_WNKh_CQ1OPnQWGl91VTgz_tuvHRxXcOPuEK5ojbnklPtsRGpOE/exec';
+const API_BASE = 'https://script.google.com/macros/s/AKfycbwHmfu1HAeKLIqX4GoHvfQL0YD_Fxvk3lwnjZznJkT-Qy7jPDucAb0avZBB3lB2-_Oy/exec';
 
 // Optional: Configure a deployed bridge server URL if you want the GH Pages UI
 // to proxy through a hosted bridge instead of calling Apps Script directly.
