@@ -28,26 +28,37 @@ function toggleDashboard() {
     closeDashboard();
   } else {
     // Use API_BASE as the dashboard URL if configured
-    if (API_BASE) {
+    if (API_BASE && API_BASE !== '') {
       // Remove any query parameters and get the base URL
       dashboardUrl = API_BASE.split('?')[0];
+      console.log('📊 Dashboard URL from API_BASE:', dashboardUrl);
     } else {
       // Fallback - user must configure API_BASE
       setConnectionStatus('Dashboard requires API_BASE in config.js', false);
       showNotification('Please configure API_BASE in config.js to use the dashboard.', 'error');
+      console.error('❌ API_BASE is not configured in config.js');
       return;
     }
     
     // Add a cache-busting parameter to prevent iframe caching issues
     const separator = dashboardUrl.includes('?') ? '&' : '?';
     const fullUrl = dashboardUrl + separator + 't=' + Date.now();
+    console.log('📊 Full dashboard URL:', fullUrl);
     
     // Show loading state
-    if (loading) loading.style.display = 'flex';
+    if (loading) {
+      loading.style.display = 'flex';
+      loading.innerHTML = `
+        <div class="loading-spinner"></div>
+        <span>Loading Dashboard...</span>
+      `;
+    }
     frame.style.display = 'none';
     
     // Set iframe source and show overlay
     frame.src = fullUrl;
+    console.log('📊 Iframe src set to:', frame.src);
+    
     overlay.classList.remove('hidden');
     overlay.style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -59,8 +70,26 @@ function toggleDashboard() {
     
     // Hide loading when iframe loads
     frame.onload = function() {
-      if (loading) loading.style.display = 'none';
+      console.log('✅ Dashboard iframe loaded successfully');
+      if (loading) {
+        loading.style.display = 'none';
+      }
       frame.style.display = 'block';
+    };
+    
+    // Handle iframe load errors
+    frame.onerror = function() {
+      console.error('❌ Failed to load dashboard iframe');
+      if (loading) {
+        loading.innerHTML = `
+          <div style="text-align:center;color:#f87171;">
+            <div style="font-size:48px;margin-bottom:16px;">⚠️</div>
+            <div style="font-weight:600;margin-bottom:8px;">Failed to load Dashboard</div>
+            <div style="font-size:13px;color:#94a3b8;">Check if API_BASE is correct in config.js</div>
+            <div style="font-size:12px;color:#64748b;margin-top:8px;word-break:break-all;max-width:400px;">${dashboardUrl}</div>
+          </div>
+        `;
+      }
     };
   }
 }
@@ -78,13 +107,20 @@ function closeDashboard() {
   
   overlay.classList.add('hidden');
   overlay.style.display = 'none';
-  frame.src = '';
+  frame.src = 'about:blank';
   frame.style.display = 'none';
-  if (loading) loading.style.display = 'none';
+  if (loading) {
+    loading.style.display = 'flex';
+    loading.innerHTML = `
+      <div class="loading-spinner"></div>
+      <span>Loading Dashboard...</span>
+    `;
+  }
   document.body.style.overflow = '';
   btn.classList.remove('active');
   btn.innerHTML = '<span class="btn-icon">📊</span><span class="btn-text">Dashboard</span>';
   dashboardOpen = false;
+  console.log('📊 Dashboard closed');
 }
 
 // Fullscreen functions
@@ -213,6 +249,9 @@ function initDashboardEvents() {
       }
     });
   }
+  
+  console.log('✅ Dashboard events initialized');
+  console.log('📊 API_BASE:', API_BASE || 'NOT SET');
 }
 
 async function api(path, params){
@@ -294,40 +333,47 @@ async function load(){
 }
 
 // Search functionality
-document.getElementById('bs').addEventListener('click', async function(){ 
-  const q = document.getElementById('q').value;
-  if (!q.trim()) {
-    document.getElementById('kres').innerHTML = '<div class="empty-state">Please enter a search term</div>';
-    return;
-  }
-  
-  const el = document.getElementById('kres');
-  el.innerHTML = '<div class="loading-state">Searching...</div>';
-  
-  try {
-    const r = await api('searchKnowledge',{q:q});
-    el.innerHTML = '';
-    if (r && r.length > 0) {
-      r.forEach(function(i){ 
-        const d = document.createElement('div'); 
-        d.className = 'card'; 
-        d.innerHTML = '<strong>' + i.title + '</strong><div>' + (i.summary || '') + '</div>'; 
-        el.appendChild(d); 
-      });
-    } else {
-      el.innerHTML = '<div class="empty-state">No results found for "' + q + '"</div>';
+const searchBtn = document.getElementById('bs');
+if (searchBtn) {
+  searchBtn.addEventListener('click', async function(){ 
+    const q = document.getElementById('q').value;
+    if (!q.trim()) {
+      document.getElementById('kres').innerHTML = '<div class="empty-state">Please enter a search term</div>';
+      return;
     }
-  } catch (e) {
-    el.innerHTML = '<div class="error-state">❌ Search failed: ' + e.message + '</div>';
-  }
-});
+    
+    const el = document.getElementById('kres');
+    el.innerHTML = '<div class="loading-state">Searching...</div>';
+    
+    try {
+      const r = await api('searchKnowledge',{q:q});
+      el.innerHTML = '';
+      if (r && r.length > 0) {
+        r.forEach(function(i){ 
+          const d = document.createElement('div'); 
+          d.className = 'card'; 
+          d.innerHTML = '<strong>' + i.title + '</strong><div>' + (i.summary || '') + '</div>'; 
+          el.appendChild(d); 
+        });
+      } else {
+        el.innerHTML = '<div class="empty-state">No results found for "' + q + '"</div>';
+      }
+    } catch (e) {
+      el.innerHTML = '<div class="error-state">❌ Search failed: ' + e.message + '</div>';
+    }
+  });
+}
 
 // Allow Enter key to trigger search
-document.getElementById('q').addEventListener('keypress', function(e) {
-  if (e.key === 'Enter') {
-    document.getElementById('bs').click();
-  }
-});
+const searchInput = document.getElementById('q');
+if (searchInput) {
+  searchInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      const btn = document.getElementById('bs');
+      if (btn) btn.click();
+    }
+  });
+}
 
 // Initialize dashboard events when DOM is ready
 if (document.readyState === 'loading') {
@@ -339,6 +385,8 @@ if (document.readyState === 'loading') {
 // Load initial data
 load().catch(e => {
   console.error(e);
-  document.getElementById('servers').innerHTML = '<div class="error-state">❌ Error loading: ' + e.message + '</div>';
-  document.getElementById('commands').innerHTML = '<div class="error-state">❌ Error loading: ' + e.message + '</div>';
+  const serversEl = document.getElementById('servers');
+  const commandsEl = document.getElementById('commands');
+  if (serversEl) serversEl.innerHTML = '<div class="error-state">❌ Error loading: ' + e.message + '</div>';
+  if (commandsEl) commandsEl.innerHTML = '<div class="error-state">❌ Error loading: ' + e.message + '</div>';
 });
