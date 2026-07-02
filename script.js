@@ -254,7 +254,9 @@ function initDashboardEvents() {
   console.log('📊 API_BASE:', API_BASE || 'NOT SET');
 }
 
+// In script.js - modify the API function
 async function api(path, params){
+  // Try BRIDGE_BASE first, fallback to API_BASE
   const base = BRIDGE_BASE || API_BASE;
   if (!base) {
     setConnectionStatus('Not configured', false);
@@ -265,9 +267,11 @@ async function api(path, params){
 
   let url;
   if (BRIDGE_BASE) {
+    // Use the bridge to proxy the request
     const cleanBase = BRIDGE_BASE.replace(/\/+$|\/(?:api)?$/g, '');
     url = new URL(cleanBase + '/api/' + encodeURIComponent(path));
   } else {
+    // Direct call to Apps Script (will have CORS issues)
     url = new URL(API_BASE);
     url.searchParams.set('api', path);
   }
