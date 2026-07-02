@@ -633,6 +633,35 @@ footer {
   overflow: hidden;
   box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
   animation: containerIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
+}
+
+/* Fullscreen styles */
+.dashboard-container:-webkit-full-screen {
+  max-width: none;
+  max-height: none;
+  height: 100vh;
+  width: 100vw;
+  border-radius: 0;
+  border: none;
+}
+
+.dashboard-container:-moz-full-screen {
+  max-width: none;
+  max-height: none;
+  height: 100vh;
+  width: 100vw;
+  border-radius: 0;
+  border: none;
+}
+
+.dashboard-container:fullscreen {
+  max-width: none;
+  max-height: none;
+  height: 100vh;
+  width: 100vw;
+  border-radius: 0;
+  border: none;
 }
 
 @keyframes containerIn {
@@ -660,6 +689,12 @@ footer {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.dashboard-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .dashboard-icon {
@@ -691,11 +726,46 @@ footer {
   -webkit-text-fill-color: #64748b;
 }
 
+.dashboard-fullscreen-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.12);
+  border-radius: 10px;
+  color: #38bdf8;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dashboard-fullscreen-btn:hover {
+  background: rgba(56, 189, 248, 0.15);
+  transform: translateY(-1px);
+}
+
+.dashboard-fullscreen-btn.active {
+  background: rgba(52, 211, 153, 0.12);
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.2);
+}
+
+.dashboard-fullscreen-btn.active:hover {
+  background: rgba(52, 211, 153, 0.2);
+}
+
+.fullscreen-icon {
+  font-size: 18px;
+}
+
 .dashboard-close-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
+  gap: 6px;
+  padding: 8px 14px;
   background: rgba(248, 113, 113, 0.1);
   border: 1px solid rgba(248, 113, 113, 0.15);
   border-radius: 10px;
@@ -944,6 +1014,11 @@ footer {
     flex-wrap: wrap;
   }
   
+  .dashboard-header-actions {
+    flex-wrap: wrap;
+  }
+  
+  .dashboard-fullscreen-btn,
   .dashboard-close-btn {
     padding: 6px 12px;
     font-size: 12px;
@@ -1011,6 +1086,11 @@ footer {
   
   .dashboard-header h2 {
     font-size: 16px;
+  }
+  
+  .dashboard-fullscreen-btn .btn-text,
+  .dashboard-close-btn .btn-text {
+    display: none;
   }
   
   .btn-text {
