@@ -1,3 +1,7 @@
+// Dashboard state
+let dashboardOpen = false;
+let dashboardUrl = '';
+
 function setConnectionStatus(message, online) {
   const dot = document.querySelector('.status-dot');
   const text = document.querySelector('.status-text');
@@ -11,6 +15,68 @@ function setConnectionStatus(message, online) {
     text.classList.toggle('offline', online !== true);
   }
 }
+
+// Dashboard toggle functions
+function toggleDashboard() {
+  const overlay = document.getElementById('dashboardOverlay');
+  const frame = document.getElementById('dashboardFrame');
+  const btn = document.getElementById('dashboardToggle');
+  
+  if (dashboardOpen) {
+    closeDashboard();
+  } else {
+    // Use API_BASE as the dashboard URL if configured, otherwise use a default
+    if (API_BASE) {
+      // Remove any query parameters and get the base URL
+      dashboardUrl = API_BASE.split('?')[0];
+    } else {
+      // Fallback - user must configure API_BASE
+      setConnectionStatus('Dashboard requires API_BASE in config.js', false);
+      return;
+    }
+    
+    // Add a cache-busting parameter to prevent iframe caching issues
+    const separator = dashboardUrl.includes('?') ? '&' : '?';
+    const fullUrl = dashboardUrl + separator + 't=' + Date.now();
+    
+    frame.src = fullUrl;
+    overlay.classList.remove('hidden');
+    overlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    btn.classList.add('active');
+    btn.innerHTML = '<span class="btn-icon">✕</span><span class="btn-text">Close</span>';
+    dashboardOpen = true;
+  }
+}
+
+function closeDashboard() {
+  const overlay = document.getElementById('dashboardOverlay');
+  const frame = document.getElementById('dashboardFrame');
+  const btn = document.getElementById('dashboardToggle');
+  
+  overlay.classList.add('hidden');
+  overlay.style.display = 'none';
+  frame.src = '';
+  document.body.style.overflow = '';
+  btn.classList.remove('active');
+  btn.innerHTML = '<span class="btn-icon">📊</span><span class="btn-text">Dashboard</span>';
+  dashboardOpen = false;
+}
+
+// Close dashboard on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && dashboardOpen) {
+    closeDashboard();
+  }
+});
+
+// Close dashboard when clicking on the overlay background
+document.addEventListener('click', function(e) {
+  const overlay = document.getElementById('dashboardOverlay');
+  if (e.target === overlay && dashboardOpen) {
+    closeDashboard();
+  }
+});
 
 async function api(path, params){
   const base = BRIDGE_BASE || API_BASE;
