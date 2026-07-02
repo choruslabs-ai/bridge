@@ -74,7 +74,7 @@
 
   <!-- Dashboard Overlay -->
   <div id="dashboardOverlay" class="dashboard-overlay hidden">
-    <div class="dashboard-container">
+    <div class="dashboard-container" id="dashboardContainer">
       <div class="dashboard-header">
         <div class="dashboard-header-left">
           <span class="dashboard-icon">📊</span>
@@ -83,17 +83,31 @@
             <span class="dashboard-subtitle">Full Control Panel</span>
           </div>
         </div>
-        <button class="dashboard-close-btn" id="dashboardCloseBtn">
-          <span class="close-icon">✕</span>
-          <span>Close Dashboard</span>
-        </button>
+        <div class="dashboard-header-actions">
+          <button class="dashboard-fullscreen-btn" id="dashboardFullscreenBtn" title="Toggle Fullscreen">
+            <span class="fullscreen-icon">⛶</span>
+            <span>Fullscreen</span>
+          </button>
+          <button class="dashboard-close-btn" id="dashboardCloseBtn">
+            <span class="close-icon">✕</span>
+            <span>Close</span>
+          </button>
+        </div>
       </div>
       <div class="dashboard-iframe-wrapper">
         <div class="dashboard-loading" id="dashboardLoading">
           <div class="loading-spinner"></div>
           <span>Loading Dashboard...</span>
         </div>
-        <iframe id="dashboardFrame" class="dashboard-iframe" src="" frameborder="0"></iframe>
+        <iframe 
+          id="dashboardFrame" 
+          class="dashboard-iframe" 
+          src="" 
+          frameborder="0"
+          allowfullscreen
+          sandbox="allow-same-origin allow-scripts allow-popups allow-modals allow-forms"
+          allow="fullscreen"
+        ></iframe>
       </div>
     </div>
   </div>
