@@ -20,7 +20,7 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="header-btn dashboard-btn" id="dashboardToggle" onclick="toggleDashboard()">
+        <button class="header-btn dashboard-btn" id="dashboardToggle">
           <span class="btn-icon">📊</span>
           <span class="btn-text">Dashboard</span>
         </button>
@@ -78,15 +78,21 @@
       <div class="dashboard-header">
         <div class="dashboard-header-left">
           <span class="dashboard-icon">📊</span>
-          <h2>CHORUS β Dashboard</h2>
-          <span class="dashboard-badge">Full Control</span>
+          <div>
+            <h2>CHORUS β Dashboard</h2>
+            <span class="dashboard-subtitle">Full Control Panel</span>
+          </div>
         </div>
-        <button class="dashboard-close-btn" onclick="closeDashboard()">
+        <button class="dashboard-close-btn" id="dashboardCloseBtn">
           <span class="close-icon">✕</span>
           <span>Close Dashboard</span>
         </button>
       </div>
       <div class="dashboard-iframe-wrapper">
+        <div class="dashboard-loading" id="dashboardLoading">
+          <div class="loading-spinner"></div>
+          <span>Loading Dashboard...</span>
+        </div>
         <iframe id="dashboardFrame" class="dashboard-iframe" src="" frameborder="0"></iframe>
       </div>
     </div>
