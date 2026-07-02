@@ -216,6 +216,7 @@ async function load(){
   }
 }
 
+// Search functionality
 document.getElementById('bs').addEventListener('click', async function(){ 
   const q = document.getElementById('q').value;
   if (!q.trim()) {
