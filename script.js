@@ -1,6 +1,7 @@
 // Dashboard state
 let dashboardOpen = false;
 let dashboardUrl = '';
+let isFullscreen = false;
 
 function setConnectionStatus(message, online) {
   const dot = document.querySelector('.status-dot');
@@ -70,6 +71,11 @@ function closeDashboard() {
   const btn = document.getElementById('dashboardToggle');
   const loading = document.getElementById('dashboardLoading');
   
+  // Exit fullscreen if active
+  if (isFullscreen) {
+    exitFullscreenMode();
+  }
+  
   overlay.classList.add('hidden');
   overlay.style.display = 'none';
   frame.src = '';
@@ -80,6 +86,67 @@ function closeDashboard() {
   btn.innerHTML = '<span class="btn-icon">📊</span><span class="btn-text">Dashboard</span>';
   dashboardOpen = false;
 }
+
+// Fullscreen functions
+function toggleFullscreen() {
+  const container = document.getElementById('dashboardContainer');
+  const btn = document.getElementById('dashboardFullscreenBtn');
+  
+  if (!isFullscreen) {
+    // Enter fullscreen
+    if (container.requestFullscreen) {
+      container.requestFullscreen();
+    } else if (container.webkitRequestFullscreen) {
+      container.webkitRequestFullscreen();
+    } else if (container.msRequestFullscreen) {
+      container.msRequestFullscreen();
+    }
+    isFullscreen = true;
+    btn.classList.add('active');
+    btn.innerHTML = '<span class="fullscreen-icon">⛶</span><span>Exit</span>';
+  } else {
+    exitFullscreenMode();
+  }
+}
+
+function exitFullscreenMode() {
+  if (document.exitFullscreen) {
+    document.exitFullscreen();
+  } else if (document.webkitExitFullscreen) {
+    document.webkitExitFullscreen();
+  } else if (document.msExitFullscreen) {
+    document.msExitFullscreen();
+  }
+  isFullscreen = false;
+  const btn = document.getElementById('dashboardFullscreenBtn');
+  if (btn) {
+    btn.classList.remove('active');
+    btn.innerHTML = '<span class="fullscreen-icon">⛶</span><span>Fullscreen</span>';
+  }
+}
+
+// Listen for fullscreen change events
+document.addEventListener('fullscreenchange', function() {
+  if (!document.fullscreenElement) {
+    isFullscreen = false;
+    const btn = document.getElementById('dashboardFullscreenBtn');
+    if (btn) {
+      btn.classList.remove('active');
+      btn.innerHTML = '<span class="fullscreen-icon">⛶</span><span>Fullscreen</span>';
+    }
+  }
+});
+
+document.addEventListener('webkitfullscreenchange', function() {
+  if (!document.webkitFullscreenElement) {
+    isFullscreen = false;
+    const btn = document.getElementById('dashboardFullscreenBtn');
+    if (btn) {
+      btn.classList.remove('active');
+      btn.innerHTML = '<span class="fullscreen-icon">⛶</span><span>Fullscreen</span>';
+    }
+  }
+});
 
 // Show notification function
 function showNotification(message, type = 'info') {
@@ -120,10 +187,20 @@ function initDashboardEvents() {
     closeBtn.addEventListener('click', closeDashboard);
   }
   
+  // Fullscreen button
+  const fullscreenBtn = document.getElementById('dashboardFullscreenBtn');
+  if (fullscreenBtn) {
+    fullscreenBtn.addEventListener('click', toggleFullscreen);
+  }
+  
   // Close on Escape key
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape' && dashboardOpen) {
-      closeDashboard();
+      if (isFullscreen) {
+        exitFullscreenMode();
+      } else {
+        closeDashboard();
+      }
     }
   });
   
@@ -131,7 +208,7 @@ function initDashboardEvents() {
   const overlay = document.getElementById('dashboardOverlay');
   if (overlay) {
     overlay.addEventListener('click', function(e) {
-      if (e.target === overlay && dashboardOpen) {
+      if (e.target === overlay && dashboardOpen && !isFullscreen) {
         closeDashboard();
       }
     });
