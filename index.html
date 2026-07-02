@@ -19,49 +19,78 @@
           <span class="badge">Public Bridge</span>
         </div>
       </div>
-      <div class="header-status">
-        <span class="status-dot offline"></span>
-        <span class="status-text">Disconnected</span>
+      <div class="header-actions">
+        <button class="header-btn dashboard-btn" id="dashboardToggle" onclick="toggleDashboard()">
+          <span class="btn-icon">📊</span>
+          <span class="btn-text">Dashboard</span>
+        </button>
+        <div class="header-status">
+          <span class="status-dot offline"></span>
+          <span class="status-text">Disconnected</span>
+        </div>
       </div>
     </div>
   </header>
   
-  <main>
-    <section class="card card-servers">
-      <div class="card-header">
-        <h2>🖥️ Servers</h2>
-        <span class="card-badge" id="servers-count">0</span>
-      </div>
-      <div id="servers" class="server-list">Loading...</div>
-    </section>
+  <!-- Bridge Content -->
+  <div id="bridgeContent">
+    <main>
+      <section class="card card-servers">
+        <div class="card-header">
+          <h2>🖥️ Servers</h2>
+          <span class="card-badge" id="servers-count">0</span>
+        </div>
+        <div id="servers" class="server-list">Loading...</div>
+      </section>
+      
+      <section class="card card-commands">
+        <div class="card-header">
+          <h2>⌨️ Commands</h2>
+          <span class="card-badge" id="commands-count">0</span>
+        </div>
+        <div id="commands" class="command-list">Loading...</div>
+      </section>
+      
+      <section class="card card-search">
+        <div class="card-header">
+          <h2>🔍 Knowledge Search</h2>
+        </div>
+        <div class="search-container">
+          <input id="q" placeholder="Search knowledge base..." autocomplete="off" />
+          <button id="bs">Search</button>
+        </div>
+        <div id="kres" class="knowledge-results"></div>
+      </section>
+    </main>
     
-    <section class="card card-commands">
-      <div class="card-header">
-        <h2>⌨️ Commands</h2>
-        <span class="card-badge" id="commands-count">0</span>
+    <footer>
+      <div class="footer-content">
+        <span>Configure API base in <code>config.js</code></span>
+        <span class="footer-divider">•</span>
+        <span>CHORUS β Bridge v1.0</span>
       </div>
-      <div id="commands" class="command-list">Loading...</div>
-    </section>
-    
-    <section class="card card-search">
-      <div class="card-header">
-        <h2>🔍 Knowledge Search</h2>
+    </footer>
+  </div>
+
+  <!-- Dashboard Overlay -->
+  <div id="dashboardOverlay" class="dashboard-overlay hidden">
+    <div class="dashboard-container">
+      <div class="dashboard-header">
+        <div class="dashboard-header-left">
+          <span class="dashboard-icon">📊</span>
+          <h2>CHORUS β Dashboard</h2>
+          <span class="dashboard-badge">Full Control</span>
+        </div>
+        <button class="dashboard-close-btn" onclick="closeDashboard()">
+          <span class="close-icon">✕</span>
+          <span>Close Dashboard</span>
+        </button>
       </div>
-      <div class="search-container">
-        <input id="q" placeholder="Search knowledge base..." autocomplete="off" />
-        <button id="bs">Search</button>
+      <div class="dashboard-iframe-wrapper">
+        <iframe id="dashboardFrame" class="dashboard-iframe" src="" frameborder="0"></iframe>
       </div>
-      <div id="kres" class="knowledge-results"></div>
-    </section>
-  </main>
-  
-  <footer>
-    <div class="footer-content">
-      <span>Configure API base in <code>config.js</code></span>
-      <span class="footer-divider">•</span>
-      <span>CHORUS β Bridge v1.0</span>
     </div>
-  </footer>
+  </div>
   
   <script src="config.js"></script>
   <script src="script.js"></script>
