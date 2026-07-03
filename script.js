@@ -27,8 +27,8 @@ function toggleDashboard() {
   if (dashboardOpen) {
     closeDashboard();
   } else {
-    // Use API_BASE as the dashboard URL if configured
-    if (API_BASE && API_BASE !== '') {
+    // Check if API_BASE is defined (from config.js)
+    if (typeof API_BASE !== 'undefined' && API_BASE && API_BASE !== '') {
       // Remove any query parameters and get the base URL
       dashboardUrl = API_BASE.split('?')[0];
       console.log('📊 Dashboard URL from API_BASE:', dashboardUrl);
@@ -251,15 +251,28 @@ function initDashboardEvents() {
   }
   
   console.log('✅ Dashboard events initialized');
-  console.log('📊 API_BASE:', API_BASE || 'NOT SET');
+  // Check if API_BASE is defined
+  if (typeof API_BASE !== 'undefined') {
+    console.log('📊 API_BASE:', API_BASE);
+  } else {
+    console.warn('⚠️ API_BASE is not defined. Check config.js');
+  }
 }
 
 // ============================================
 // API PROXY FUNCTION - Serves as the bridge endpoint
 // ============================================
 async function api(path, params) {
+  // Check if API_BASE is defined
+  if (typeof API_BASE === 'undefined') {
+    setConnectionStatus('Config error', false);
+    document.getElementById('servers').innerHTML = '<div class="error-state">⚠️ API_BASE not defined. Check config.js loading.</div>';
+    document.getElementById('commands').innerHTML = '<div class="error-state">⚠️ API_BASE not defined. Check config.js loading.</div>';
+    throw new Error('API_BASE not defined - config.js may not be loaded');
+  }
+
   // If BRIDGE_BASE is configured, use it as a proxy
-  if (BRIDGE_BASE) {
+  if (typeof BRIDGE_BASE !== 'undefined' && BRIDGE_BASE) {
     const cleanBase = BRIDGE_BASE.replace(/\/+$/, '');
     const url = new URL(cleanBase + '/proxy');
     
@@ -303,6 +316,7 @@ async function api(path, params) {
     }
   }
 
+  console.log('📡 Direct API call:', url.toString());
   const res = await fetch(url.toString());
   if (!res.ok) {
     throw new Error('API request failed: ' + res.status + ' ' + res.statusText);
