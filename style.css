@@ -300,6 +300,117 @@ main {
   border-color: rgba(56, 189, 248, 0.3);
 }
 
+/* POST API Form Styles */
+.card-post-api {
+  grid-column: 1 / -1;
+  margin-top: 8px;
+}
+
+.post-response {
+  margin-top: 16px;
+  border-top: 1px solid rgba(148, 163, 184, 0.08);
+  padding-top: 16px;
+}
+
+.response-header {
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+}
+
+.response-output {
+  background: rgba(10, 18, 30, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  border-radius: 10px;
+  padding: 14px 16px;
+  color: #94a3b8;
+  font-size: 12px;
+  font-family: 'Courier New', monospace;
+  overflow-x: auto;
+  max-height: 200px;
+  min-height: 60px;
+  transition: border-color 0.3s ease;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+#postApiForm .form-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 16px;
+  align-items: start;
+}
+
+#postApiForm .form-row label {
+  display: grid;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+#postApiForm select,
+#postApiForm textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 10px;
+  background: rgba(10, 18, 30, 0.8);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-family: 'Inter', sans-serif;
+  transition: border-color 0.3s ease;
+}
+
+#postApiForm select:focus,
+#postApiForm textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.06);
+}
+
+#postApiForm textarea {
+  resize: vertical;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  min-height: 80px;
+}
+
+#postApiForm .form-row:last-child {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+  #postApiForm .form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  #postApiForm .form-row:last-child {
+    flex-direction: column;
+  }
+  
+  .card-post-api .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+/* Footer update */
+.footer-content code {
+  background: rgba(52, 211, 153, 0.1);
+  color: #34d399;
+  padding: 2px 10px;
+  border-radius: 6px;
+  font-family: 'Inter', monospace;
+  font-size: 12px;
+  border: 1px solid rgba(52, 211, 153, 0.15);
+}
+
 /* Server List */
 .server-list {
   display: flex;
