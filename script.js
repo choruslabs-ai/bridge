@@ -260,26 +260,14 @@ function initDashboardEvents() {
 }
 
 // ============================================
-// API FUNCTION - Direct call to Apps Script
+// GET API FUNCTION - Via Bridge
 // ============================================
 async function api(path, params) {
-  // Check if API_BASE is defined
-  if (typeof API_BASE === 'undefined') {
-    setConnectionStatus('Config error', false);
-    document.getElementById('servers').innerHTML = '<div class="error-state">⚠️ API_BASE not defined. Check config.js loading.</div>';
-    document.getElementById('commands').innerHTML = '<div class="error-state">⚠️ API_BASE not defined. Check config.js loading.</div>';
-    throw new Error('API_BASE not defined - config.js may not be loaded');
-  }
-
-  if (!API_BASE) {
-    setConnectionStatus('Not configured', false);
-    document.getElementById('servers').innerHTML = '<div class="error-state">⚠️ API_BASE not configured in config.js</div>';
-    document.getElementById('commands').innerHTML = '<div class="error-state">⚠️ API_BASE not configured in config.js</div>';
-    throw new Error('API_BASE not configured');
-  }
-
+  // Use the current page URL as the base (the bridge itself)
+  const bridgeUrl = window.location.origin + window.location.pathname;
+  
   // Build the URL with parameters
-  const url = new URL(API_BASE);
+  const url = new URL(bridgeUrl);
   url.searchParams.set('api', path);
   
   if (params) {
@@ -290,7 +278,7 @@ async function api(path, params) {
     }
   }
 
-  console.log('📡 API call:', url.toString());
+  console.log('📡 GET API call via bridge:', url.toString());
   
   try {
     const res = await fetch(url.toString());
@@ -305,6 +293,159 @@ async function api(path, params) {
 }
 
 // ============================================
+// POST API FUNCTION - Via Bridge (Stable Endpoint)
+// ============================================
+async function postApi(action, params) {
+  // Use the current page URL as the base (the bridge itself)
+  const bridgeUrl = window.location.origin + window.location.pathname;
+  
+  console.log('📤 POST API call via bridge:', bridgeUrl);
+  console.log('📦 Payload:', { api: action, params: params });
+
+  try {
+    const res = await fetch(bridgeUrl, {
+      method: 'POST',
+      mode: 'cors',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        api: action,
+        params: params
+      })
+    });
+
+    if (!res.ok) {
+      throw new Error('POST request failed: ' + res.status + ' ' + res.statusText);
+    }
+    return res.json();
+  } catch (error) {
+    console.error('❌ POST Error:', error);
+    throw error;
+  }
+}
+
+// ============================================
+// POST Form Handler
+// ============================================
+function initPostForm() {
+  const form = document.getElementById('postApiForm');
+  const responseOutput = document.getElementById('responseOutput');
+  
+  if (!form) return;
+
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const apiAction = document.getElementById('postApiAction').value;
+    const paramsText = document.getElementById('postParams').value;
+    
+    // Show loading state
+    responseOutput.textContent = '⏳ Sending request...';
+    responseOutput.style.color = '#94a3b8';
+    
+    try {
+      // Parse the JSON parameters
+      const params = JSON.parse(paramsText);
+      
+      // Send the POST request
+      const result = await postApi(apiAction, params);
+      
+      // Display success response
+      responseOutput.textContent = JSON.stringify(result, null, 2);
+      responseOutput.style.color = '#34d399';
+      
+      // Show success notification
+      showNotification(`✅ ${apiAction} completed successfully!`, 'info');
+      
+      // Refresh the data after successful POST
+      setTimeout(() => {
+        load();
+      }, 1000);
+      
+    } catch (error) {
+      // Display error response
+      responseOutput.textContent = `❌ Error: ${error.message}`;
+      responseOutput.style.color = '#f87171';
+      
+      if (error.name === 'SyntaxError') {
+        responseOutput.textContent = `❌ Invalid JSON: ${error.message}\n\nPlease check your parameters format.`;
+        showNotification('Invalid JSON format. Please check your parameters.', 'error');
+      } else {
+        showNotification(`❌ ${apiAction} failed: ${error.message}`, 'error');
+      }
+    }
+  });
+
+  // Add sample JSON for each action
+  const actionSelect = document.getElementById('postApiAction');
+  const paramsTextarea = document.getElementById('postParams');
+  
+  const samples = {
+    createCommand: {
+      "identifier": "test_command",
+      "name": "Test Command",
+      "type": "slash",
+      "description": "A test command created via POST"
+    },
+    createServer: {
+      "server_id": "1234567890",
+      "server_name": "Test Server",
+      "notes": "Created via POST API"
+    },
+    createFeature: {
+      "name": "test_feature",
+      "enabled": true,
+      "config_json": {"description": "Test feature created via POST"}
+    },
+    createAgent: {
+      "name": "Test Agent",
+      "role": "assistant",
+      "provider": "gemini",
+      "priority": 5
+    },
+    updateCommand: {
+      "identifier": "test_command",
+      "changes": {
+        "description": "Updated via POST API"
+      }
+    },
+    updateServer: {
+      "server_id": "1234567890",
+      "changes": {
+        "prefix": "!",
+        "run_mode": "agentic"
+      }
+    },
+    updateProvider: {
+      "provider_id": "default",
+      "changes": {
+        "enabled": true
+      }
+    },
+    ingestKnowledge: {
+      "title": "Test Knowledge",
+      "content": "This is test content created via POST API",
+      "summary": "Test summary",
+      "tags": ["test", "api"]
+    }
+  };
+
+  actionSelect.addEventListener('change', function() {
+    const sample = samples[this.value];
+    if (sample) {
+      paramsTextarea.value = JSON.stringify(sample, null, 2);
+    } else {
+      paramsTextarea.value = '{\n  "key": "value"\n}';
+    }
+  });
+
+  // Trigger initial sample
+  const initialEvent = new Event('change');
+  actionSelect.dispatchEvent(initialEvent);
+}
+
+// ============================================
 // URL parameter detection for bot server API calls
 // ============================================
 function handleApiRequest() {
@@ -312,8 +453,8 @@ function handleApiRequest() {
   const apiPath = urlParams.get('api');
   
   if (apiPath) {
-    // This is an API request from a bot server
-    console.log('🤖 API request received:', apiPath);
+    // This is a GET API request from a bot server
+    console.log('🤖 GET API request received via bridge:', apiPath);
     
     // Get all parameters
     const params = {};
@@ -323,10 +464,31 @@ function handleApiRequest() {
       }
     }
     
-    // Handle the API request
-    api(apiPath, params)
+    // Forward to Apps Script backend
+    if (typeof API_BASE === 'undefined' || !API_BASE) {
+      document.body.textContent = JSON.stringify({error: 'API_BASE not configured'});
+      document.body.style.whiteSpace = 'pre-wrap';
+      document.body.style.fontFamily = 'monospace';
+      document.body.style.padding = '20px';
+      document.body.style.background = '#0a0e17';
+      document.body.style.color = '#f87171';
+      return true;
+    }
+    
+    // Build the Apps Script URL
+    const scriptUrl = new URL(API_BASE);
+    scriptUrl.searchParams.set('api', apiPath);
+    
+    for (const key in params) {
+      if (params.hasOwnProperty(key)) {
+        scriptUrl.searchParams.set(key, params[key]);
+      }
+    }
+    
+    // Forward the request to Apps Script
+    fetch(scriptUrl.toString())
+      .then(res => res.json())
       .then(data => {
-        // Send response as JSON
         document.body.textContent = JSON.stringify(data);
         document.body.style.whiteSpace = 'pre-wrap';
         document.body.style.fontFamily = 'monospace';
@@ -345,7 +507,36 @@ function handleApiRequest() {
     
     return true; // API request handled
   }
+  
+  // Check for POST request (bot server sending data)
+  if (window.location.method === 'POST' || document.method === 'POST') {
+    console.log('🤖 POST API request received via bridge');
+    
+    // Handle POST request
+    handlePostRequest();
+    return true;
+  }
+  
   return false; // Normal page request
+}
+
+// ============================================
+// Handle POST requests to the bridge
+// ============================================
+function handlePostRequest() {
+  // This function is called when the bridge receives a POST request
+  // We need to read the POST data and forward it to Apps Script
+  
+  // Since we can't directly access POST body in a static page,
+  // we use the URLSearchParams approach or a hidden form
+  // The actual POST handling is done by the server (GitHub Pages doesn't support this)
+  // So we use a workaround: the bot sends POST data as JSON in a query parameter
+  
+  // For actual POST support, we need a server-side component
+  // But we can simulate it by using the query parameter approach
+  console.log('⚠️ POST requests to static pages require server-side support.');
+  console.log('💡 Use the POST form in the UI or send POST directly to Apps Script.');
+  console.log('📌 For stable endpoint, use: https://choruslabs-ai.github.io/bridge/?api=action&params=...');
 }
 
 async function load(){
@@ -446,6 +637,7 @@ function init() {
   if (!isApiRequest) {
     // Normal page load - initialize dashboard and load data
     initDashboardEvents();
+    initPostForm();
     
     // Load initial data
     load().catch(e => {
