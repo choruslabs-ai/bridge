@@ -260,7 +260,7 @@ function initDashboardEvents() {
 }
 
 // ============================================
-// API PROXY FUNCTION - Serves as the bridge endpoint
+// API FUNCTION - Direct call to Apps Script
 // ============================================
 async function api(path, params) {
   // Check if API_BASE is defined
@@ -271,40 +271,14 @@ async function api(path, params) {
     throw new Error('API_BASE not defined - config.js may not be loaded');
   }
 
-  // If BRIDGE_BASE is configured, use it as a proxy
-  if (typeof BRIDGE_BASE !== 'undefined' && BRIDGE_BASE) {
-    const cleanBase = BRIDGE_BASE.replace(/\/+$/, '');
-    const url = new URL(cleanBase + '/proxy');
-    
-    // Pass the actual API endpoint as a parameter
-    url.searchParams.set('target', API_BASE);
-    url.searchParams.set('api', path);
-    
-    if (params) {
-      for (const k in params) {
-        if (params.hasOwnProperty(k)) {
-          url.searchParams.set(k, params[k]);
-        }
-      }
-    }
-    
-    console.log('🔄 Proxying request through bridge:', url.toString());
-    
-    const res = await fetch(url.toString());
-    if (!res.ok) {
-      throw new Error('Proxy request failed: ' + res.status + ' ' + res.statusText);
-    }
-    return res.json();
-  }
-  
-  // Fallback to direct Apps Script call
   if (!API_BASE) {
     setConnectionStatus('Not configured', false);
-    document.getElementById('servers').innerHTML = '<div class="error-state">⚠️ API_BASE or BRIDGE_BASE not configured in config.js</div>';
-    document.getElementById('commands').innerHTML = '<div class="error-state">⚠️ API_BASE or BRIDGE_BASE not configured in config.js</div>';
-    throw new Error('API_BASE or BRIDGE_BASE not configured');
+    document.getElementById('servers').innerHTML = '<div class="error-state">⚠️ API_BASE not configured in config.js</div>';
+    document.getElementById('commands').innerHTML = '<div class="error-state">⚠️ API_BASE not configured in config.js</div>';
+    throw new Error('API_BASE not configured');
   }
 
+  // Build the URL with parameters
   const url = new URL(API_BASE);
   url.searchParams.set('api', path);
   
@@ -316,12 +290,18 @@ async function api(path, params) {
     }
   }
 
-  console.log('📡 Direct API call:', url.toString());
-  const res = await fetch(url.toString());
-  if (!res.ok) {
-    throw new Error('API request failed: ' + res.status + ' ' + res.statusText);
+  console.log('📡 API call:', url.toString());
+  
+  try {
+    const res = await fetch(url.toString());
+    if (!res.ok) {
+      throw new Error('API request failed: ' + res.status + ' ' + res.statusText);
+    }
+    return res.json();
+  } catch (error) {
+    console.error('❌ API Error:', error);
+    throw error;
   }
-  return res.json();
 }
 
 // ============================================
