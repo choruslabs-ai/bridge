@@ -16,7 +16,7 @@
         <div class="logo-icon">⚡</div>
         <div>
           <h1>CHORUS β</h1>
-          <span class="badge">Public Bridge</span>
+          <span class="badge">Stable Bridge</span>
         </div>
       </div>
       <div class="header-actions">
@@ -35,6 +35,7 @@
   <!-- Bridge Content -->
   <div id="bridgeContent">
     <main>
+      <!-- GET API Results Section -->
       <section class="card card-servers">
         <div class="card-header">
           <h2>🖥️ Servers</h2>
@@ -61,13 +62,50 @@
         </div>
         <div id="kres" class="knowledge-results"></div>
       </section>
+
+      <!-- POST API Form Section -->
+      <section class="card card-post-api panel-span-2">
+        <div class="card-header">
+          <h2>📤 POST API Test</h2>
+          <span class="card-badge">For Bot Testing</span>
+        </div>
+        <form id="postApiForm" class="settings-form">
+          <div class="form-row">
+            <label style="flex:1;">
+              API Action
+              <select name="api" id="postApiAction" required>
+                <option value="createCommand">Create Command</option>
+                <option value="createServer">Create Server</option>
+                <option value="createFeature">Create Feature</option>
+                <option value="createAgent">Create Agent</option>
+                <option value="updateCommand">Update Command</option>
+                <option value="updateServer">Update Server</option>
+                <option value="updateProvider">Update Provider</option>
+                <option value="ingestKnowledge">Ingest Knowledge</option>
+              </select>
+            </label>
+            <label style="flex:2;">
+              Parameters (JSON)
+              <textarea id="postParams" rows="4" placeholder='{"identifier": "test_cmd", "name": "Test Command", "type": "slash"}' required></textarea>
+            </label>
+          </div>
+          <div class="form-row">
+            <button type="submit" class="button button-primary">Send POST Request</button>
+            <button type="reset" class="button button-secondary">Clear</button>
+          </div>
+        </form>
+        <div id="postResponse" class="post-response">
+          <div class="response-header">Response:</div>
+          <pre id="responseOutput" class="response-output">Waiting for request...</pre>
+        </div>
+      </section>
     </main>
     
     <footer>
       <div class="footer-content">
-        <span>Configure API base in <code>config.js</code></span>
+        <span>Stable endpoint: <code>https://choruslabs-ai.github.io/bridge/</code></span>
         <span class="footer-divider">•</span>
-        <span>CHORUS β Bridge v1.0</span>
+        <span>CHORUS β Bridge v2.0</span>
       </div>
     </footer>
   </div>
