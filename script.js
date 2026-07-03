@@ -254,28 +254,47 @@ function initDashboardEvents() {
   console.log('📊 API_BASE:', API_BASE || 'NOT SET');
 }
 
-// In script.js - modify the API function
-async function api(path, params){
-  // Try BRIDGE_BASE first, fallback to API_BASE
-  const base = BRIDGE_BASE || API_BASE;
-  if (!base) {
+// ============================================
+// API PROXY FUNCTION - Serves as the bridge endpoint
+// ============================================
+async function api(path, params) {
+  // If BRIDGE_BASE is configured, use it as a proxy
+  if (BRIDGE_BASE) {
+    const cleanBase = BRIDGE_BASE.replace(/\/+$/, '');
+    const url = new URL(cleanBase + '/proxy');
+    
+    // Pass the actual API endpoint as a parameter
+    url.searchParams.set('target', API_BASE);
+    url.searchParams.set('api', path);
+    
+    if (params) {
+      for (const k in params) {
+        if (params.hasOwnProperty(k)) {
+          url.searchParams.set(k, params[k]);
+        }
+      }
+    }
+    
+    console.log('🔄 Proxying request through bridge:', url.toString());
+    
+    const res = await fetch(url.toString());
+    if (!res.ok) {
+      throw new Error('Proxy request failed: ' + res.status + ' ' + res.statusText);
+    }
+    return res.json();
+  }
+  
+  // Fallback to direct Apps Script call
+  if (!API_BASE) {
     setConnectionStatus('Not configured', false);
     document.getElementById('servers').innerHTML = '<div class="error-state">⚠️ API_BASE or BRIDGE_BASE not configured in config.js</div>';
     document.getElementById('commands').innerHTML = '<div class="error-state">⚠️ API_BASE or BRIDGE_BASE not configured in config.js</div>';
     throw new Error('API_BASE or BRIDGE_BASE not configured');
   }
 
-  let url;
-  if (BRIDGE_BASE) {
-    // Use the bridge to proxy the request
-    const cleanBase = BRIDGE_BASE.replace(/\/+$|\/(?:api)?$/g, '');
-    url = new URL(cleanBase + '/api/' + encodeURIComponent(path));
-  } else {
-    // Direct call to Apps Script (will have CORS issues)
-    url = new URL(API_BASE);
-    url.searchParams.set('api', path);
-  }
-
+  const url = new URL(API_BASE);
+  url.searchParams.set('api', path);
+  
   if (params) {
     for (const k in params) {
       if (params.hasOwnProperty(k)) {
@@ -289,6 +308,50 @@ async function api(path, params){
     throw new Error('API request failed: ' + res.status + ' ' + res.statusText);
   }
   return res.json();
+}
+
+// ============================================
+// URL parameter detection for bot server API calls
+// ============================================
+function handleApiRequest() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const apiPath = urlParams.get('api');
+  
+  if (apiPath) {
+    // This is an API request from a bot server
+    console.log('🤖 API request received:', apiPath);
+    
+    // Get all parameters
+    const params = {};
+    for (const [key, value] of urlParams.entries()) {
+      if (key !== 'api') {
+        params[key] = value;
+      }
+    }
+    
+    // Handle the API request
+    api(apiPath, params)
+      .then(data => {
+        // Send response as JSON
+        document.body.textContent = JSON.stringify(data);
+        document.body.style.whiteSpace = 'pre-wrap';
+        document.body.style.fontFamily = 'monospace';
+        document.body.style.padding = '20px';
+        document.body.style.background = '#0a0e17';
+        document.body.style.color = '#e2e8f0';
+      })
+      .catch(error => {
+        document.body.textContent = JSON.stringify({error: error.message});
+        document.body.style.whiteSpace = 'pre-wrap';
+        document.body.style.fontFamily = 'monospace';
+        document.body.style.padding = '20px';
+        document.body.style.background = '#0a0e17';
+        document.body.style.color = '#f87171';
+      });
+    
+    return true; // API request handled
+  }
+  return false; // Normal page request
 }
 
 async function load(){
@@ -379,18 +442,31 @@ if (searchInput) {
   });
 }
 
-// Initialize dashboard events when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initDashboardEvents);
-} else {
-  initDashboardEvents();
+// ============================================
+// Main initialization
+// ============================================
+function init() {
+  // Check for API request from bot server
+  const isApiRequest = handleApiRequest();
+  
+  if (!isApiRequest) {
+    // Normal page load - initialize dashboard and load data
+    initDashboardEvents();
+    
+    // Load initial data
+    load().catch(e => {
+      console.error(e);
+      const serversEl = document.getElementById('servers');
+      const commandsEl = document.getElementById('commands');
+      if (serversEl) serversEl.innerHTML = '<div class="error-state">❌ Error loading: ' + e.message + '</div>';
+      if (commandsEl) commandsEl.innerHTML = '<div class="error-state">❌ Error loading: ' + e.message + '</div>';
+    });
+  }
 }
 
-// Load initial data
-load().catch(e => {
-  console.error(e);
-  const serversEl = document.getElementById('servers');
-  const commandsEl = document.getElementById('commands');
-  if (serversEl) serversEl.innerHTML = '<div class="error-state">❌ Error loading: ' + e.message + '</div>';
-  if (commandsEl) commandsEl.innerHTML = '<div class="error-state">❌ Error loading: ' + e.message + '</div>';
-});
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
