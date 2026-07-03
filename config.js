@@ -4,3 +4,4 @@ const API_BASE = 'https://script.google.com/macros/s/AKfycbyO2R2dJi7vdUfTHu-HjFB
 // Log to confirm config loaded
 console.log('✅ config.js loaded');
 console.log('📊 API_BASE:', API_BASE);
+console.log('🌉 Bridge URL:', window.location.origin + window.location.pathname);
