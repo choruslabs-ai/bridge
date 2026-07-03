@@ -7,4 +7,4 @@ const API_BASE = 'https://script.google.com/macros/s/AKfycbyTch_zPGtIBq69acuZfN0
 // Example: const BRIDGE_BASE = 'https://chorus-bridge.example.com';
 // The bridge server is expected to expose endpoints at /api/:fn, e.g.
 // https://chorus-bridge.example.com/api/listCommands
-const BRIDGE_BASE = '';
+const BRIDGE_BASE = 'https://choruslabs-ai.github.io/bridge
